@@ -20,25 +20,34 @@ import numpy as np
 import os
 import random
 import sys
-import time
+# import time
 import tqdm
 from optparse import OptionParser
 
-from dynet import Model, LSTMBuilder, SimpleSGDTrainer, lookup, concatenate, rectify, renew_cg, dropout, log_softmax, esum, pick
+from dynet import Model, LSTMBuilder, SimpleSGDTrainer, lookup, concatenate, \
+                    rectify, renew_cg, dropout, log_softmax, esum, pick
 
-from .conll09 import lock_dicts, post_train_lock_dicts, VOCDICT, POSDICT, FRAMEDICT, LUDICT, LUPOSDICT
+from .conll09 import lock_dicts, post_train_lock_dicts, VOCDICT, POSDICT, \
+                        FRAMEDICT, LUDICT, LUPOSDICT
+
 from .dataio import get_wvec_map, read_conll, read_related_lus
 from .evaluation import calc_f, evaluate_example_frameid
 from .frame_semantic_graph import Frame
-from .globalconfig import VERSION, TRAIN_FTE, UNK, DEV_CONLL, TEST_CONLL, TRAIN_EXEMPLAR
+
+from .globalconfig import VERSION, TRAIN_FTE, UNK, DEV_CONLL, TEST_CONLL, \
+                            TRAIN_EXEMPLAR
+
 from .housekeeping import unk_replace_tokens
-from .raw_data import make_data_instance
+# from .raw_data import make_data_instance
 from .semafor_evaluation import convert_conll_to_frame_elements
 
 
 optpr = OptionParser()
-optpr.add_option("--mode", dest="mode", type="choice", choices=["train", "test", "refresh", "predict"], default="train")
-optpr.add_option("-n", "--model_name", help="Name of model directory to save model to.")
+optpr.add_option("--mode", dest="mode", type="choice",
+                 choices=["train", "test", "refresh", "predict"],
+                 default="train")
+optpr.add_option("-n", "--model_name",
+                 help="Name of model directory to save model to.")
 optpr.add_option("--hier", action="store_true", default=False)
 optpr.add_option("--exemplar", action="store_true", default=False)
 optpr.add_option("--raw_input", type="str", metavar="FILE")
@@ -64,9 +73,9 @@ USE_HIER = options.hier
 sys.stderr.write("_____________________\n")
 sys.stderr.write("COMMAND: {}\n".format(" ".join(sys.argv)))
 if options.mode in ["train", "refresh"]:
-    sys.stderr.write("VALIDATED MODEL SAVED TO:\t{}\n".format(model_file_name))
+    sys.stderr.write(f"VALIDATED MODEL SAVED TO:\t{model_file_name}\n")
 else:
-    sys.stderr.write("MODEL FOR TEST / PREDICTION:\t{}\n".format(model_file_name))
+    sys.stderr.write(f"MODEL FOR TEST / PREDICTION:\t{model_file_name}\n")
 sys.stderr.write("PARSING MODE:\t{}\n".format(options.mode))
 sys.stderr.write("_____________________\n\n")
 
@@ -79,9 +88,12 @@ def find_multitokentargets(examples, split):
             multitoktargs += 1
             tfs = set(tr.targetframedict.values())
             if len(tfs) > 1:
-                raise Exception("different frames for neighboring targets!", tr.targetframedict)
+                raise Exception("different frames for neighboring targets!",
+                                tr.targetframedict)
     sys.stderr.write("multi-token targets in %s: %.3f%% [%d / %d]\n"
-                     % (split, multitoktargs*100/tottargs, multitoktargs, tottargs))
+                     % (split, multitoktargs*100/tottargs, multitoktargs,
+                        tottargs))
+
 
 trainexamples, m, t = read_conll(train_conll)
 find_multitokentargets(trainexamples, "train")
@@ -99,11 +111,11 @@ UNKTOKEN = VOCDICT.getid(UNK)
 if options.mode in ["train", "refresh"]:
     devexamples, m, t = read_conll(DEV_CONLL)
     find_multitokentargets(devexamples, "dev/test")
-    out_conll_file = "{}predicted-{}-frameid-dev.conll".format(model_dir, VERSION)
+    out_conll_file = f"{model_dir}predicted-{VERSION}-frameid-dev.conll"
 elif options.mode == "test":
     devexamples, m, t = read_conll(TEST_CONLL)
     find_multitokentargets(devexamples, "dev/test")
-    out_conll_file = "{}predicted-{}-frameid-test.conll".format(model_dir, VERSION)
+    out_conll_file = f"{model_dir}predicted-{VERSION}-frameid-test.conll"
     fefile = "{}predicted-{}-frameid-test.fes".format(model_dir, VERSION)
 elif options.mode == "predict":
     assert options.raw_input is not None
@@ -132,7 +144,9 @@ configuration = {'train': train_conll,
                  'patience': 25,
                  'eval_after_every_epochs': 100,
                  'dev_eval_epoch_frequency': 50 if options.exemplar else 5}
+
 configuration_file = os.path.join(model_dir, 'configuration.json')
+
 if options.mode == "train":
     if options.config:
         config_json = open(options.config, "r")
@@ -163,15 +177,22 @@ PATIENCE = configuration['patience']
 EVAL_EVERY_EPOCH = configuration['eval_after_every_epochs']
 DEV_EVAL_EPOCH = configuration['dev_eval_epoch_frequency'] * EVAL_EVERY_EPOCH
 
-sys.stderr.write("\nPARSER SETTINGS (see {})\n_____________________\n".format(configuration_file))
-for key in sorted(configuration):
-    sys.stderr.write("{}:\t{}\n".format(key.upper(), configuration[key]))
+sys.stderr.write(f"\nPARSER SETTINGS (see {configuration_file})\n_____________________\n")
+
+for key, val in sorted(configuration.items()):
+    sys.stderr.write(f"{key.upper()}:\t{val}\n")
 
 sys.stderr.write("\n")
 
+
 def print_data_status(fsp_dict, vocab_str):
-    sys.stderr.write("# {} = {}\n\tUnseen in dev/test = {}\n\tUnlearnt in dev/test = {}\n".format(
-        vocab_str, fsp_dict.size(), fsp_dict.num_unks()[0], fsp_dict.num_unks()[1]))
+    size = fsp_dict.size()
+    unseen = fsp_dict.num_unks()[0]
+    unlearnt = fsp_dict.num_unks()[1]
+    sys.stderr.write(f"# {vocab_str} = {size}")
+    sys.stderr.write(f"\tUnseen in dev/test = {unseen}")
+    sys.stderr.write(f"\tUnlearnt in dev/test = {unlearnt}\n")
+
 
 print_data_status(VOCDICT, "Tokens")
 print_data_status(POSDICT, "POS tags")
@@ -188,6 +209,7 @@ v_x = model.add_lookup_parameters((VOCDICT.size(), TOKDIM))
 p_x = model.add_lookup_parameters((POSDICT.size(), POSDIM))
 lu_x = model.add_lookup_parameters((LUDICT.size(), LUDIM))
 lp_x = model.add_lookup_parameters((LUPOSDICT.size(), LPDIM))
+
 if USE_WV:
     e_x = model.add_lookup_parameters((VOCDICT.size(), PRETRAINED_DIM))
     for wordid in pretrained_embeddings_map:
@@ -214,7 +236,9 @@ b_z = model.add_parameters((HIDDENDIM, 1))
 w_f = model.add_parameters((FRAMEDICT.size(), HIDDENDIM))
 b_f = model.add_parameters((FRAMEDICT.size(), 1))
 
-def identify_frames(builders, tokens, postags, lexunit, targetpositions, goldframe=None):
+
+def identify_frames(builders, tokens, postags, lexunit, targetpositions,
+                    goldframe=None):
     renew_cg()
     trainmode = (goldframe is not None)
 
@@ -225,7 +249,8 @@ def identify_frames(builders, tokens, postags, lexunit, targetpositions, goldfra
     emb2_xi = []
     for i in range(sentlen + 1):
         if tokens[i] in pretrained_embeddings_map:
-            # If update set to False, prevents pretrained embeddings from being updated.
+            # If update set to False, prevents pretrained embeddings from
+            # being updated.
             emb_without_backprop = lookup(e_x, tokens[i], update=True)
             features_at_i = concatenate([emb_x[i], pos_x[i], emb_without_backprop])
         else:

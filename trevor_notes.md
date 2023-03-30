@@ -34,6 +34,7 @@ By default, DyNet requests only 512 MB of RAM. Not sure if that's the bottleneck
 `mem=` is in MB, so this ~12 GB of RAM. 
 
 Run this before the `from dynet import ...` command.
+I tried this with `targetid.py` but it didn't show an appreciable speed-up (~30 min).
 
 # Training
 

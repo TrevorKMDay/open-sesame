@@ -24,9 +24,13 @@ import sys
 import tqdm
 from optparse import OptionParser
 
-from dynet import Model, LSTMBuilder, SimpleSGDTrainer, lookup, concatenate, rectify, renew_cg, dropout, log_softmax, esum, pick
+# import dynet as dy
+from dynet import Model, LSTMBuilder, SimpleSGDTrainer, lookup, concatenate, \
+    rectify, renew_cg, dropout, log_softmax, esum, pick
 
-from .conll09 import lock_dicts, post_train_lock_dicts, VOCDICT, POSDICT, LEMDICT, LUDICT, LUPOSDICT
+from .conll09 import lock_dicts, post_train_lock_dicts, VOCDICT, POSDICT, \
+    LEMDICT, LUDICT, LUPOSDICT
+
 from .dataio import create_target_lu_map, get_wvec_map, read_conll
 from .evaluation import calc_f, evaluate_example_targetid
 from .frame_semantic_graph import LexicalUnit
@@ -38,8 +42,10 @@ from .semafor_evaluation import convert_conll_to_frame_elements
 
 optpr = OptionParser()
 optpr.add_option("--mode", dest="mode", type="choice",
-                 choices=["train", "test", "refresh", "predict"], default="train")
-optpr.add_option("-n", "--model_name", help="Name of model directory to save model to.")
+                 choices=["train", "test", "refresh", "predict"],
+                 default="train")
+optpr.add_option("-n", "--model_name",
+                 help="Name of model directory to save model to.")
 optpr.add_option("--raw_input", type="str", metavar="FILE")
 optpr.add_option("--config", type="str", metavar="FILE")
 (options, args) = optpr.parse_args()
@@ -67,7 +73,8 @@ sys.stderr.write("_____________________\n\n")
 
 def combine_examples(corpus_ex):
     """
-    Target ID needs to be trained for all targets in the sentence jointly, as opposed to
+    Target ID needs to be trained for all targets in the sentence jointly, as
+    opposed to
     frame and arg ID. Returns all target annotations for a given sentence.
     """
     combined_ex = [corpus_ex[0]]
@@ -186,7 +193,7 @@ def get_fn_pos_by_rules(pos, token):
         rule_pos = "v"
     elif pos[0] == "n" or pos in ["$", ":", "sym", "uh", "wp"]:  # Nouns
         rule_pos = "n"
-    elif pos[0] == "j" or pos in ["ls", "pdt", "rbr", "rbs", "prp"]:  # Adjectives
+    elif pos[0] == "j" or pos in ["ls", "pdt", "rbr", "rbs", "prp"]:  # Adj.
         rule_pos = "a"
     elif pos == "cc":  # Conjunctions
         rule_pos = "c"
@@ -255,8 +262,10 @@ l_x = model.add_lookup_parameters((LEMDICT.size(), LEMMA_DIM))
 e_x = model.add_lookup_parameters((VOCDICT.size(), PRETRAINED_DIM))
 for wordid in pretrained_map:
     e_x.init_row(wordid, pretrained_map[wordid])
+
 # Embedding for unknown pretrained embedding.
 u_x = model.add_lookup_parameters((1, PRETRAINED_DIM), init='glorot')
+# u_x = model.add_lookup_parameters((1, PRETRAINED_DIM))
 
 w_e = model.add_parameters((LSTM_INP_DIM, PRETRAINED_DIM + INPUT_DIM))
 b_e = model.add_parameters((LSTM_INP_DIM, 1))
@@ -293,7 +302,8 @@ def identify_targets(builders, tokens, postags, lemmas, gold_targets=None):
         if tokens[i] in pretrained_map:
             # Prevent the pretrained embeddings from being updated.
             emb_without_backprop = lookup(e_x, tokens[i], update=False)
-            features_at_i = concatenate([emb_x[i], pos_x[i], lem_x[i], emb_without_backprop])
+            features_at_i = concatenate([emb_x[i], pos_x[i], lem_x[i],
+                                         emb_without_backprop])
         else:
             features_at_i = concatenate([emb_x[i], pos_x[i], lem_x[i], u_x])
         emb2_xi.append(w_e * features_at_i + b_e)
@@ -326,7 +336,8 @@ def identify_targets(builders, tokens, postags, lemmas, gold_targets=None):
             is_target = int(i in gold_targets)
 
         if int(np.argmax(logloss.npvalue())) != 0:
-            predicted_targets[i] = (create_lexical_unit(lemmas[i], postags[i], tokens[i]), None)
+            predicted_targets[i] = (create_lexical_unit(lemmas[i], postags[i],
+                                                        tokens[i]), None)
 
         losses.append(pick(logloss, is_target))
 
@@ -436,9 +447,11 @@ elif options.mode == "test":
     test_predictions = []
 
     for test_ex in combined_dev:
-        _, predicted = identify_targets(builders, test_ex.tokens, test_ex.postags, test_ex.lemmas)
+        _, predicted = identify_targets(builders, test_ex.tokens,
+                                        test_ex.postags, test_ex.lemmas)
 
-        tp_fp_fn = evaluate_example_targetid(test_ex.targetframedict.keys(), predicted)
+        tp_fp_fn = evaluate_example_targetid(test_ex.targetframedict.keys(),
+                                             predicted)
         corpus_tp_fp_fn = np.add(corpus_tp_fp_fn, tp_fp_fn)
 
         test_predictions.append(predicted)
@@ -460,7 +473,8 @@ elif options.mode == "predict":
 
     predictions = []
     for instance in instances:
-        _, prediction = identify_targets(builders, instance.tokens, instance.postags, instance.lemmas)
+        _, prediction = identify_targets(builders, instance.tokens,
+                                         instance.postags, instance.lemmas)
         predictions.append(prediction)
     sys.stderr.write("Printing output in CoNLL format to {}\n".format(out_conll_file))
     print_as_conll(instances, predictions)

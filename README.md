@@ -1,12 +1,25 @@
 # Open-SESAME
 
-A frame-semantic parser for automatically detecting [FrameNet](https://framenet.icsi.berkeley.edu/fndrupal/) frames and their frame-elements from sentences. The model is based on  softmax-margin segmental recurrent neural nets, described in our paper [Frame-Semantic Parsing with Softmax-Margin Segmental RNNs and a Syntactic Scaffold](https://arxiv.org/abs/1706.09528). An example of a frame-semantic parse is shown below
+**Forked, edited by Trevor: March 29, 2023**
+
+A frame-semantic parser for automatically detecting
+[FrameNet](https://framenet.icsi.berkeley.edu/fndrupal/) frames and their
+frame-elements from sentences. The model is based on  softmax-margin segmental
+recurrent neural nets, described in our paper
+[``Frame-Semantic Parsing with Softmax-Margin Segmental RNNs and a Syntactic Scaffold''](https://arxiv.org/abs/1706.09528).
+An example of a frame-semantic parse is shown below
 
 ![Frame-semantics example](fig/fsp-example.png)
 
 ## Installation
 
-This project is built on python==3.7.9 and the [DyNet](http://dynet.readthedocs.io/en/latest/python.html) library. Additionally, it uses some packages from [NLTK](https://www.nltk.org/). 
+This project is built on python==3.7.9 and the
+[DyNet](http://dynet.readthedocs.io/en/latest/python.html) library.
+Additionally, it uses some packages from [NLTK](https://www.nltk.org/).
+
+`dynet` relies on **version 2.1.0 of the Eigen library**, see installation
+instructions [here](https://pypi.org/project/dyNET/). Link to correct
+zip file [here](https://github.com/clab/dynet/releases/download/2.1/eigen-b2e267dc99d4.zip).
 
 ```sh
 $ pip install dynet==2.0.3
@@ -16,28 +29,48 @@ $ python -m nltk.downloader averaged_perceptron_tagger wordnet
 
 ## Data Preprocessing
 
-This codebase only handles data in the XML format specified under FrameNet. The default version is FrameNet 1.7, but the codebase is backward compatible with versions 1.6 and 1.5.
+This codebase only handles data in the XML format specified under FrameNet.
+The default version is FrameNet 1.7, but the codebase is backward compatible
+with versions 1.6 and 1.5.
 
 As a first step the data is preprocessed for ease of readability.
 
 0. Clone the repository.
+
 ```sh
 $ git clone https://github.com/swabhs/open-sesame.git
 $ cd open-sesame/
  ```
 
-1. Create a directory for the data, `$DATA`, containing the (extracted) [FrameNet version 1.7](https://drive.google.com/open?id=1s4SDt_yDhT8qFs1MZJbeFf-XeiNPNnx7) data. This should be under `$DATA/fndata-1.7/`.
+1. Create a directory for the data, `$DATA`, containing the (extracted)
+[FrameNet version 1.7](https://drive.google.com/open?id=1s4SDt_yDhT8qFs1MZJbeFf-XeiNPNnx7)
+data. This should be under `$DATA/fndata-1.7/`.
 
-2. Second, this project uses pretrained [GloVe word embeddings](https://nlp.stanford.edu/projects/glove/) of 100 dimensions, trained on 6B tokens. [Download](http://nlp.stanford.edu/data/glove.6B.100d.zip) and extract under `$DATA/embeddings_glove/`.
+2. Second, this project uses pretrained
+[GloVe word embeddings](https://nlp.stanford.edu/projects/glove/) of
+100 dimensions, trained on 6B tokens.
+[Download (new link)](http://nlp.stanford.edu/data/glove.6B.zip) and extract
+under `$DATA/embeddings_glove/`.
 
-3. Optionally, make alterations to the configurations in `configurations/global_config.json`, if you have decided to either use a different version of FrameNet, or different pretrained embeddings, and so on.
+3. Optionally, make alterations to the configurations in
+`configurations/global_config.json`, if you have decided to either use a
+different version of FrameNet, or different pretrained embeddings, and so on.
 
-4. In this repository, data is formatted in a [format similar to CoNLL 2009](https://ufal.mff.cuni.cz/conll2009-st/task-description.html), but with BIO tags, for ease of reading, compared to the original XML format. See sample CoNLL formatting [here](https://github.com/swabhs/open-sesame/blob/master/sample.fn1.7.train.conll). Preprocess the data by executing:
+4. In this repository, data is formatted in a
+[format similar to CoNLL 2009](https://ufal.mff.cuni.cz/conll2009-st/task-description.html),
+but with BIO tags, for ease of reading, compared to the original XML format.
+See sample CoNLL formatting
+[here](https://github.com/swabhs/open-sesame/blob/master/sample.fn1.7.train.conll).
+Preprocess the data by executing:
+
 ```sh
 $ python -m sesame.preprocess
 ```
-The above script writes the train, dev and test files in the required format into the `data/neural/fn1.7/` directory. A large fraction of the annotations are either incomplete, or inconsistent. Such annotations are discarded, but logged under `preprocess-fn1.7.log`, along with the respective error messages. To include exemplars, use the option ```--exemplar``` with the above command.
-
+The above script writes the train, dev and test files in the required format
+into the `data/neural/fn1.7/` directory. A large fraction of the annotations
+are either incomplete, or inconsistent. Such annotations are discarded, but
+logged under `preprocess-fn1.7.log`, along with the respective error messages.
+To include exemplars, use the option `--exemplar` with the above command.
 
 ## Training
 
@@ -110,11 +143,15 @@ $ python -m sesame.argid --mode predict \
                          --raw_input logs/fn1.7-pretrained-frameid/predicted-frames.conll
 ```
 
-The resulting frame-semantic parses will be written to `logs/fn1.7-pretrained-argid/predicted-args.conll` in the same CoNLL 2009-like format.
+The resulting frame-semantic parses will be written to
+`logs/fn1.7-pretrained-argid/predicted-args.conll` in the same CoNLL 2009-like
+format.
 
 ## Contact and Reference
 
-For questions and usage issues, please contact `sswayamd@alumni.cmu.edu`. If you use open-sesame for research, please cite [our paper](https://arxiv.org/pdf/1706.09528.pdf) as follows:
+For questions and usage issues, please contact `sswayamd@alumni.cmu.edu`.
+If you use open-sesame for research, please cite
+[our paper](https://arxiv.org/pdf/1706.09528.pdf) as follows:
 
 ```
 @article{swayamdipta:17,

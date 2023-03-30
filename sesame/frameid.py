@@ -189,8 +189,8 @@ def print_data_status(fsp_dict, vocab_str):
     size = fsp_dict.size()
     unseen = fsp_dict.num_unks()[0]
     unlearnt = fsp_dict.num_unks()[1]
-    sys.stderr.write(f"# {vocab_str} = {size}")
-    sys.stderr.write(f"\tUnseen in dev/test = {unseen}")
+    sys.stderr.write(f"# {vocab_str} = {size}\n")
+    sys.stderr.write(f"\tUnseen in dev/test = {unseen}\n")
     sys.stderr.write(f"\tUnlearnt in dev/test = {unlearnt}\n")
 
 

@@ -1,0 +1,44 @@
+# Installation
+
+The original installation instructions *did not* work.
+I encountered a bug in the DyNet code that suggested v. 2.0.3 was not what it was developed on.
+
+I installed DyNet 2.1 from [source][1], as well as the specific version of Eigen linked there.
+
+The next step was to create a conda environment with `python==3.7.9` as in the `open-sesame` 
+instructions and then install:
+
+    pip install cython numpy
+
+`cython` for the build-from-source, and `numpy` to provide the correct version of numpy for 
+DyNet, which otherwise tries to install an incorrect version.
+
+Ensure the DyNet build is done with the conda version of python.
+
+# Data preprocessing
+
+    git clone https://github.com/swabhs/open-sesame.git
+
+ - Downloaded [FrameNet version 1.7][2]
+ - GloVe link in repo broken, [located][3] and downloaded
+
+    python -m sesame.preprocess
+
+# Training
+
+Not literally in a for loop, but three-step training process. It self-allocates
+512MB of memory (can I incrase this?).
+
+    for i in target frame arg ; do
+        python -m sesame.${i}id \
+            --mode train --model_name fn1.7-pretrained-${i}id
+    done
+
+ - `target`: 30 min on 4x16gb
+ - `frame`:
+ - `arg`:
+
+[1]: https://github.com/clab/dynet/releases/tag/2.1
+[2]: https://drive.google.com/open?id=1s4SDt_yDhT8qFs1MZJbeFf-XeiNPNnx7
+[3]: https://nlp.stanford.edu/projects/glove/
+

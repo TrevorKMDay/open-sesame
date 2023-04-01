@@ -24,6 +24,9 @@ import sys
 import tqdm
 from optparse import OptionParser
 
+import dynet_config
+dynet_config.set(mem=12000)
+
 # import dynet as dy
 from dynet import Model, LSTMBuilder, SimpleSGDTrainer, lookup, concatenate, \
     rectify, renew_cg, dropout, log_softmax, esum, pick

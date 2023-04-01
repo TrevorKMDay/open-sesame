@@ -23,18 +23,20 @@ Ensure the DyNet build is done with the conda version of python.
  - GloVe link in repo broken, [located][3] and downloaded
 
     python -m sesame.preprocess
-    
+
 # Memory
 
-By default, DyNet requests only 512 MB of RAM. Not sure if that's the bottleneck, but you can ask for more:
+By default, DyNet requests only 512 MB of RAM. Not sure if that's the
+bottleneck, but you can ask for more:
 
     import dynet_config
     dynet_config.set(mem=12000)
-    
-`mem=` is in MB, so this ~12 GB of RAM. 
+
+`mem=` is in MB, so this ~12 GB of RAM.
 
 Run this before the `from dynet import ...` command.
-I tried this with `targetid.py` but it didn't show an appreciable speed-up (~30 min).
+I tried this with `targetid.py` but it didn't show an appreciable speed-up
+(~30 min).
 
 # Training
 

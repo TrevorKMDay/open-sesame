@@ -53,7 +53,11 @@ Not literally in a for loop, but three-step training process. It self-allocates
                 512 MB of RAM).
  - `arg`:
 
+## Training models
+
+Models are uploaded to [Box][4].
+
 [1]: https://github.com/clab/dynet/releases/tag/2.1
 [2]: https://drive.google.com/open?id=1s4SDt_yDhT8qFs1MZJbeFf-XeiNPNnx7
 [3]: https://nlp.stanford.edu/projects/glove/
-
+[4]: https://umn.box.com/s/eru3a30ejulpzfiqklue83buv9fh54hm

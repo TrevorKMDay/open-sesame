@@ -26,6 +26,7 @@ from optparse import OptionParser
 
 import dynet_config
 dynet_config.set(mem=12000)
+dynet_config.set_gpu()
 
 # import dynet as dy
 from dynet import Model, LSTMBuilder, SimpleSGDTrainer, lookup, concatenate, \
@@ -177,9 +178,12 @@ for key in sorted(configuration):
 
 sys.stderr.write("\n")
 
+
 def print_data_status(fsp_dict, vocab_str):
     sys.stderr.write("# {} = {}\n\tUnseen in dev/test = {}\n\tUnlearnt in dev/test = {}\n".format(
-        vocab_str, fsp_dict.size(), fsp_dict.num_unks()[0], fsp_dict.num_unks()[1]))
+        vocab_str, fsp_dict.size(), fsp_dict.num_unks()[0],
+        fsp_dict.num_unks()[1]))
+
 
 print_data_status(VOCDICT, "Tokens")
 print_data_status(POSDICT, "POS tags")
@@ -189,7 +193,8 @@ sys.stderr.write("\n_____________________\n\n")
 
 def get_fn_pos_by_rules(pos, token):
     """
-    Rules for mapping NLTK part of speech tags into FrameNet tags, based on co-occurrence
+    Rules for mapping NLTK part of speech tags into FrameNet tags, based on
+    co-occurrence
     statistics, since there is not a one-to-one mapping.
     """
     if pos[0] == "v" or pos in ["rp", "ex", "md"]:  # Verbs
@@ -216,7 +221,8 @@ def get_fn_pos_by_rules(pos, token):
 
 def check_if_potential_target(lemma):
     """
-    Simple check to see if this is a potential position to even consider, based on
+    Simple check to see if this is a potential position to even consider,
+    based on
     the LU index provided under FrameNet. Note that since we use NLTK lemmas,
     this might be lossy.
     """
@@ -393,10 +399,12 @@ if options.mode in ["train", "refresh"]:
                 "epoch = %d loss = %.6f train_f1 = %.4f val_f1 = %.4f best_val_f1 = %.4f" % (
                     epoch, loss/idx, trainf, dev_f1, best_dev_f1))
             inptoks = []
-            unk_replace_tokens(trex.tokens, inptoks, VOCDICT, UNK_PROB, UNKTOKEN)
+            unk_replace_tokens(trex.tokens, inptoks, VOCDICT, UNK_PROB,
+                               UNKTOKEN)
 
-            trex_loss, trexpred = identify_targets(
-                builders, inptoks, trex.postags, trex.lemmas, gold_targets=trex.targetframedict.keys())
+            trex_loss, trexpred = identify_targets(builders, inptoks,
+                                                   trex.postags, trex.lemmas,
+                                                   gold_targets=trex.targetframedict.keys())
             trainex_result = evaluate_example_targetid(list(trex.targetframedict.keys()), trexpred)
             train_result = np.add(train_result, trainex_result)
 

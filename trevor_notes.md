@@ -40,13 +40,15 @@ I tried this with `targetid.py` but it didn't show an appreciable speed-up
 
 # Training
 
-Not literally in a for loop, but three-step training process. It self-allocates
-512MB of memory (can I incrase this?).
+For each model `target frame arg`:
 
-    for i in target frame arg ; do
-        python -m sesame.${i}id \
-            --mode train --model_name fn1.7-pretrained-${i}id
+python \
+    -m sesame.${i}id                        \
+    --mode          train                   \
+    --model_name    fn1.7-pretrained-${i}id
     done
+
+## Training time
 
  - `target`: 30 min on 4x16gb
  - `frame`:  7 h, 23 min on 1 core, 8 GB RAM (not given more than default

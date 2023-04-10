@@ -24,13 +24,23 @@ import sys
 import time
 import tqdm
 
+import dynet_config
+dynet_config.set(mem=12000)
+dynet_config.set_gpu()
+
 import dynet as dy
+
 from optparse import OptionParser
 
-from .conll09 import VOCDICT, FRAMEDICT, FEDICT, LUDICT, LUPOSDICT, DEPRELDICT, CLABELDICT, POSDICT, LEMDICT, lock_dicts, post_train_lock_dicts
-from .dataio import read_conll, get_wvec_map, read_ptb, read_frame_maps, read_frame_relations
+from .conll09 import (VOCDICT, FRAMEDICT, FEDICT, LUDICT, LUPOSDICT,
+                      DEPRELDICT, CLABELDICT, POSDICT, LEMDICT, lock_dicts,
+                      post_train_lock_dicts)
+from .dataio import (read_conll, get_wvec_map, read_ptb, read_frame_maps,
+                     read_frame_relations)
 from .evaluation import calc_f, evaluate_example_argid, evaluate_corpus_argid
-from .globalconfig import VERSION, TRAIN_EXEMPLAR, TRAIN_FTE, TRAIN_FTE_CONSTITS, UNK, EMPTY_LABEL, EMPTY_FE, TEST_CONLL, DEV_CONLL, ARGID_LR
+from .globalconfig import (VERSION, TRAIN_EXEMPLAR, TRAIN_FTE,
+                           TRAIN_FTE_CONSTITS, UNK, EMPTY_LABEL, EMPTY_FE,
+                           TEST_CONLL, DEV_CONLL, ARGID_LR)
 from .housekeeping import Factor, filter_long_ex, unk_replace_tokens
 from .discrete_argid_feats import ArgPosition, OutHeads, SpanWidth
 from .raw_data import make_data_instance
@@ -39,18 +49,26 @@ from .sentence import Sentence
 
 
 optpr = OptionParser()
-optpr.add_option("--testf", dest="test_conll", help="Annotated CoNLL test file", metavar="FILE", default=TEST_CONLL)
-optpr.add_option("--mode", dest="mode", type="choice", choices=["train", "test", "refresh", "ensemble", "predict"],
+optpr.add_option("--testf", dest="test_conll",
+                 help="Annotated CoNLL test file", metavar="FILE",
+                 default=TEST_CONLL)
+optpr.add_option("--mode", dest="mode", type="choice",
+                 choices=["train", "test", "refresh", "ensemble", "predict"],
                  default="train")
 optpr.add_option("--saveensemble", action="store_true", default=False)
-optpr.add_option("-n", "--model_name", help="Name of model directory to save model to.")
+optpr.add_option("-n", "--model_name",
+                 help="Name of model directory to save model to.")
 optpr.add_option("--exemplar", action="store_true", default=False)
-optpr.add_option("--spanlen", type="choice", choices=["clip", "filter"], default="clip")
-optpr.add_option("--loss", type="choice", choices=["log", "softmaxm", "hinge"], default="softmaxm")
-optpr.add_option("--cost", type="choice", choices=["hamming", "recall"], default="recall")
+optpr.add_option("--spanlen", type="choice", choices=["clip", "filter"],
+                 default="clip")
+optpr.add_option("--loss", type="choice", choices=["log", "softmaxm", "hinge"],
+                 default="softmaxm")
+optpr.add_option("--cost", type="choice", choices=["hamming", "recall"],
+                 default="recall")
 optpr.add_option("--roc", type="int", default=2)
 optpr.add_option("--hier", action="store_true", default=False)
-optpr.add_option("--syn", type="choice", choices=["dep", "constit", "none"], default="none")
+optpr.add_option("--syn", type="choice", choices=["dep", "constit", "none"],
+                 default="none")
 optpr.add_option("--ptb", action="store_true", default=False)
 optpr.add_option("--raw_input", type="str", metavar="FILE")
 optpr.add_option("--config", type="str", metavar="FILE")
@@ -246,9 +264,12 @@ for key in sorted(configuration):
 
 sys.stderr.write("\n")
 
+
 def print_data_status(fsp_dict, vocab_str):
     sys.stderr.write("# {} = {}\n\tUnseen in dev/test = {}\n\tUnlearnt in dev/test = {}\n".format(
-        vocab_str, fsp_dict.size(), fsp_dict.num_unks()[0], fsp_dict.num_unks()[1]))
+        vocab_str, fsp_dict.size(), fsp_dict.num_unks()[0],
+        fsp_dict.num_unks()[1]))
+
 
 print_data_status(VOCDICT, "Tokens")
 print_data_status(POSDICT, "POS tags")
